@@ -1,0 +1,9 @@
+opencv-python==4.5.5.64
+torch
+albumentations
+torchvision
+matplotlib
+numpy
+tqdm
+pycocotools
+torchmetrics
