@@ -2,8 +2,8 @@ version: "3.8"
 
 services:
 
-  mobility-aids:
-    container_name: mobility-aids
+  cnn-tester:
+    container_name: cnn-tester
     # The following lines define the NVIDIA runtime and give the container 
     # access to all available GPU devices on the host.
     # INFO: comment them out if you don't have access to a GPU, as the container will not start otherwise.

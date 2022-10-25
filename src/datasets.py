@@ -4,17 +4,19 @@ import cv2
 import numpy as np
 import os
 import glob as glob
+import random
 
 from xml.etree import ElementTree as et
-from config import CLASSES, RESIZE_TO, TRAIN_DIR, VALID_DIR, BATCH_SIZE
+from config import CLASSES, RESIZE_TO, TRAIN_DIR, VALID_DIR, BATCH_SIZE,RAUG, AUGMENTATION
 from torch.utils.data import Dataset, DataLoader
-from custom_utils import collate_fn, get_train_transform, get_valid_transform
+from custom_utils import collate_fn
+from data_tools.augmentations import CutOut, imgRandomAugmentation, DropFlip, Rot90Saturation, BrigTransScale
 
 # the dataset class
 class CustomDataset(Dataset):
 
-    def __init__(self, images_path,width, height, classes, transforms=None):
-        self.transforms = transforms
+    def __init__(self, images_path,width, height, classes, augmented=True):
+        self.augmented = augmented
         self.images_path = images_path
         self.height = height
         self.width = width
@@ -48,11 +50,13 @@ class CustomDataset(Dataset):
                 self.all_annot_paths.remove(annot_path)
                 self.all_image_paths.remove(annot_path.split('.xml')[0]+'.jpg')
  
+    
 
     def __getitem__(self, idx):
+        
         # capture the image name and the full image path
         image_name = self.all_images[idx]
-        print(image_name)
+        #print(image_name)
         image_path = os.path.join(self.images_path, image_name)
         
         # read the image
@@ -125,13 +129,30 @@ class CustomDataset(Dataset):
 
 
         # apply the image transforms or transform image as Tensor
-        if self.transforms is not None:
-            sample = self.transforms(image = image_resized,
-                                   bboxes = target['boxes'],
-                                   labels = labels)
-            image_resized = sample['image']
-            target['boxes'] = torch.Tensor(sample['bboxes'])
+        if self.augmented is not False:
 
+            print("DATA AUGMENTATION")
+            #print(target['boxes'])
+
+
+            if random.random() < AUGMENTATION:
+                n = random.randint(0, 2)
+
+                if n == 0:
+                    image_resized, bboxes = CutOut()(image_resized, target["boxes"])
+                elif n == 1:
+                    image_resized, bboxes = DropFlip()(image_resized, target["boxes"])
+                else:
+                    image_resized, bboxes = BrigTransScale()(image_resized, target["boxes"])
+                
+                target['boxes'] = torch.as_tensor(bboxes, dtype=torch.float32)
+
+                #print("AFTER DATA AUGMENTATION")
+                #print(target['boxes'])
+
+            image_resized = torchvision.transforms.ToTensor()(image_resized.copy())
+            
+            
         else:
             image_resized = torchvision.transforms.ToTensor()(image_resized)
 
@@ -147,12 +168,12 @@ class CustomDataset(Dataset):
 
 # prepare the final datasets and data loaders
 def create_train_dataset():
-    train_dataset = CustomDataset(TRAIN_DIR, RESIZE_TO, RESIZE_TO, CLASSES)
+    train_dataset = CustomDataset(TRAIN_DIR, RESIZE_TO, RESIZE_TO, CLASSES,False)
     #train_dataset = MicrocontrollerDataset(TRAIN_DIR, RESIZE_TO, RESIZE_TO, CLASSES, get_train_transform())
     return train_dataset
 
 def create_valid_dataset():
-    valid_dataset = CustomDataset(VALID_DIR, RESIZE_TO, RESIZE_TO, CLASSES)
+    valid_dataset = CustomDataset(VALID_DIR, RESIZE_TO, RESIZE_TO, CLASSES, False)
     #valid_dataset = MicrocontrollerDataset(VALID_DIR, RESIZE_TO, RESIZE_TO, CLASSES, get_valid_transform())
     return valid_dataset
 
