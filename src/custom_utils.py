@@ -130,6 +130,24 @@ def save_loss_plot(OUT_DIR, train_loss_list):
     print('SAVING PLOTS COMPLETE...')
     plt.close('all')
 
+def save_loss_plot_2(OUT_DIR, train_loss_list, valid_loss_list):
+    plt.figure(figsize=(10, 7))
+    plt.plot(
+        train_loss_list, color='tab:blue', linestyle='-', 
+        label='train loss'
+    )
+    plt.plot(
+        valid_loss_list, color='tab:red', linestyle='-', 
+        label='validataion loss'
+    )
+    plt.xlabel('Epochs')
+    plt.ylabel('Loss')
+    plt.legend()
+    plt.savefig(f"{OUT_DIR}/train_loss.png")
+    print('SAVING PLOTS COMPLETE...')
+    plt.close('all')
+
+
 def save_plots(train_acc, valid_acc, train_loss, valid_loss, name=None):
     """
     Function to save the loss and accuracy plots to disk.

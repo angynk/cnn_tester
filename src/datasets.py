@@ -7,10 +7,12 @@ import glob as glob
 import random
 
 from xml.etree import ElementTree as et
-from config import CLASSES, RESIZE_TO, TRAIN_DIR, VALID_DIR, BATCH_SIZE,RAUG, AUGMENTATION
+from config import CLASSES, RESIZE_TO, TRAIN_DIR, VALID_DIR, BATCH_SIZE, AUGMENTATION
 from torch.utils.data import Dataset, DataLoader
 from custom_utils import collate_fn
-from data_tools.augmentations import CutOut, imgRandomAugmentation, DropFlip, Rot90Saturation, BrigTransScale
+from data_tools.augmentations import CutOut, DropFlip, BrigTransScale
+from data_tools.resize_utilities import usual_resize_image, custom_resize_image, zerop_resize_image
+
 
 # the dataset class
 class CustomDataset(Dataset):
@@ -63,8 +65,8 @@ class CustomDataset(Dataset):
         image = cv2.imread(image_path)
         # convert BGR to RGB color format
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB).astype(np.float32)
-        image_resized = cv2.resize(image, (self.width, self.height))
-        image_resized /= 255.0
+        #image_resized = cv2.resize(image, (self.width, self.height))
+        #image_resized /= 255.0
         
         # capture the corresponding XML file for getting the annotations
         annot_filename = image_name[:-4] + '.xml'
@@ -82,8 +84,13 @@ class CustomDataset(Dataset):
         image_width = image.shape[1]
         image_height = image.shape[0]
 
+        #image_resized, boxes, labels = custom_resize_image(image, self.width, self.height, root)  
+        image_resized, boxes, labels = zerop_resize_image(image, self.width, self.height, root)  
+        #image_resized, boxes, labels = usual_resize_image(image, root, self.width, self.height)  
+        image_resized /= 255.0
+
         # box coordinates for xml files are extracted and corrected for image size given
-        for member in root.findall('object'):
+        """ for member in root.findall('object'):
             # map the current object name to `classes` list to get...
             # ... the label index and append to `labels` list
             labels.append(self.classes.index(member.find('name').text))
@@ -102,9 +109,9 @@ class CustomDataset(Dataset):
             xmin_final = (xmin/image_width)*self.width
             xmax_final = (xmax/image_width)*self.width
             ymin_final = (ymin/image_height)*self.height
-            yamx_final = (ymax/image_height)*self.height
+            yamx_final = (ymax/image_height)*self.height 
             
-            boxes.append([xmin_final, ymin_final, xmax_final, yamx_final])
+            boxes.append([xmin_final, ymin_final, xmax_final, yamx_final]) """
     
 
         
@@ -168,7 +175,7 @@ class CustomDataset(Dataset):
 
 # prepare the final datasets and data loaders
 def create_train_dataset():
-    train_dataset = CustomDataset(TRAIN_DIR, RESIZE_TO, RESIZE_TO, CLASSES,False)
+    train_dataset = CustomDataset(TRAIN_DIR, RESIZE_TO, RESIZE_TO, CLASSES,True)
     #train_dataset = MicrocontrollerDataset(TRAIN_DIR, RESIZE_TO, RESIZE_TO, CLASSES, get_train_transform())
     return train_dataset
 

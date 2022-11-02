@@ -84,6 +84,9 @@ def evaluate(model, data_loader, device,classes_name):
     metric_logger = utils.MetricLogger(delimiter="  ")
     header = "Test:"
 
+     # List to store batch losses.
+    val_loss_list = []
+
     coco = get_coco_api_from_dataset(data_loader.dataset)
     iou_types = _get_iou_types(model)
     coco_evaluator = CocoEvaluator(coco, iou_types)
@@ -97,6 +100,7 @@ def evaluate(model, data_loader, device,classes_name):
         outputs = model(images)
 
         outputs = [{k: v.to(cpu_device) for k, v in t.items()} for t in outputs]
+
         model_time = time.time() - model_time
 
         res = {target["image_id"].item(): output for target, output in zip(targets, outputs)}
@@ -115,7 +119,7 @@ def evaluate(model, data_loader, device,classes_name):
     evaluate_model(map_metric, coco_evaluator, n_threads)
     
 
-    return coco_evaluator
+    return coco_evaluator, val_loss_list
 
 
 def evaluate_model (map_metric, coco_evaluator, n_threads):

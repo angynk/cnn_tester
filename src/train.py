@@ -2,7 +2,7 @@ from config import CLASSES, DEVICE, NUM_CLASSES, NUM_EPOCHS, OUT_DIR, NUM_WORKER
 from p_utils.engine import train_one_epoch, evaluate
 from datasets import create_train_dataset, create_valid_dataset, create_train_loader, create_valid_loader
 from model import create_model
-from custom_utils import Averager, SaveBestModel, save_model, save_loss_plot, show_tranformed_image
+from custom_utils import Averager, SaveBestModel, save_model, save_loss_plot_2, show_tranformed_image
 from tqdm.auto import tqdm
 import torch
 import datetime
@@ -30,6 +30,7 @@ if __name__ == '__main__':
     # Train and validation loss lists to store loss values of all
     # iterations till ena and plot graphs for all iterations.
     train_loss_list = []
+    valid_loss_list = []
 
     # Initialize the model and move to the computation device.
     model = create_model(num_classes=NUM_CLASSES)
@@ -75,20 +76,21 @@ if __name__ == '__main__':
             scheduler=scheduler
         )
 
-        evaluate(model, valid_loader, DEVICE, CLASSES)
+        _, val_loss_list = evaluate(model, valid_loader, DEVICE, CLASSES)
 
         # Add the current epoch's batch-wise lossed to the `train_loss_list`.
         train_loss_list.extend(batch_loss_list)
+        valid_loss_list.extend(valid_loss_list)
 
          # save the best model till now if we have the least loss in the...
         # ... current epoch
-        #save_best_model(
-        #    val_loss_hist.value, epoch, model, optimizer
-        #)
+        """ save_best_model(
+            valid_loss_list, epoch, model, optimizer
+        ) """
         # save the current epoch model
         save_model(epoch, model, optimizer)
         # save loss plot
-        save_loss_plot(OUT_DIR, train_loss_list)
+        save_loss_plot_2(OUT_DIR, train_loss_list,valid_loss_list)
     
     total_time = time.time() - total_time
     total_time_str = str(datetime.timedelta(seconds=int(total_time)))

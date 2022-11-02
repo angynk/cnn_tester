@@ -5,7 +5,7 @@ BATCH_SIZE = 4
 # Resize the image for trainning and transforms INICIAL 960 540 
 RESIZE_TO = 512
 # Number of epochs to train for
-NUM_EPOCHS = 200
+NUM_EPOCHS = 100
 NUM_WORKERS = 4
 
 DEVICE = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
@@ -30,13 +30,5 @@ VISUALIZE_TRANSFORMED_IMAGES = False
 # location to save model and plots
 OUT_DIR = 'outputs'
 
-# First Hyperparameters
-HFLIP = 0.8
-RSCALE = 0.5
-RHSV = 0.8
-RTRANSLATE = 0.4
-RSHEAR = 0.5
-
-CUTOUT = 0.5
-RAUG = 0.8
+# Hyperparameters Augmentation
 AUGMENTATION = 0.8
