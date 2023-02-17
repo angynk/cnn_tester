@@ -14,6 +14,7 @@ from pprint import pprint
 from p_utils.coco_eval import CocoEvaluator
 from p_utils.coco_utils import get_coco_api_from_dataset, _get_iou_types, summarize
 from torchmetrics.detection.mean_ap import MeanAveragePrecision
+import numpy as np
 
 
 def train_one_epoch(
@@ -150,3 +151,31 @@ def evaluate_model (map_metric, coco_evaluator, n_threads):
 
     # Plot Precision/Recall Curve
     plot_pr_curve(coco_eval, CLASSES)
+
+
+def predict(image, model, device, detection_threshold):
+    """
+    Predict the output of an image after forward pass through
+    the model and return the bounding boxes, class names, and 
+    class labels. 
+    """
+    # Transform the image to tensor.
+    image =image.to(device)
+    # Add a batch dimension.
+    image = image.unsqueeze(0) 
+    # Get the predictions on the image.
+    with torch.no_grad():
+        outputs = model(image) 
+
+    # Get score for all the predicted objects.
+    pred_scores = outputs[0]['scores'].detach().cpu().numpy()
+
+    # Get all the predicted bounding boxes.
+    pred_bboxes = outputs[0]['boxes'].detach().cpu().numpy()
+    # Get boxes above the threshold score.
+    boxes = pred_bboxes[pred_scores >= detection_threshold].astype(np.int32)
+    labels = outputs[0]['labels'][:len(boxes)]
+    # Get all the predicited class names.
+    pred_classes = [CLASSES[i] for i in labels.cpu().numpy()]
+
+    return boxes, pred_classes, labels

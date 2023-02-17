@@ -84,8 +84,8 @@ class CustomDataset(Dataset):
         image_width = image.shape[1]
         image_height = image.shape[0]
 
-        #image_resized, boxes, labels = custom_resize_image(image, self.width, self.height, root)  
-        image_resized, boxes, labels = zerop_resize_image(image, self.width, self.height, root)  
+        image_resized, boxes, labels = custom_resize_image(image, self.width, self.height, root)  
+        #image_resized, boxes, labels = zerop_resize_image(image, self.width, self.height, root)  
         #image_resized, boxes, labels = usual_resize_image(image, root, self.width, self.height)  
         image_resized /= 255.0
 
